@@ -17,6 +17,7 @@ Item {
                                    : ({})
   readonly property var pluginSettings: pluginApi ? (pluginApi.pluginSettings || {}) : ({})
   readonly property string obsctlPath: pluginApi ? (pluginApi.pluginDir + "/scripts/obsctl") : ""
+  readonly property string openPathHelper: pluginApi ? (pluginApi.pluginDir + "/scripts/open-path") : ""
   readonly property string configuredVideosPath: pluginSettings.videosPath !== undefined
                                                  ? String(pluginSettings.videosPath).trim()
                                                  : String(defaults.videosPath !== undefined ? defaults.videosPath : "")
@@ -107,7 +108,7 @@ Item {
 
   function openVideos() {
     if (videosPath !== "") {
-      Quickshell.execDetached(["xdg-open", videosPath]);
+      Quickshell.execDetached([openPathHelper, videosPath]);
     }
   }
 
