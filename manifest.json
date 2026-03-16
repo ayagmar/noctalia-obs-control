@@ -1,0 +1,31 @@
+{
+    "id": "obs-control",
+    "name": "OBS Control",
+    "version": "0.1.0",
+    "author": "ayagmar",
+    "description": "OBS recording and replay status widget for Noctalia.",
+    "entryPoints": {
+        "main": "Main.qml",
+        "settings": "Settings.qml",
+        "panel": "Panel.qml",
+        "barWidget": "BarWidget.qml",
+        "controlCenterWidget": "ControlCenterWidget.qml"
+    },
+    "license": "MIT",
+    "repository": "https://github.com/ayagmar/noctalia-obs-control",
+    "homepage": "https://github.com/ayagmar/noctalia-obs-control",
+    "minNoctaliaVersion": "0.12.0",
+    "metadata": {
+        "cpuIntensive": false,
+        "defaultSettings": {
+            "pollIntervalMs": 2500,
+            "leftClickAction": "panel",
+            "videosPath": "",
+            "showBarWhenRecording": true,
+            "showBarWhenReplay": false,
+            "showControlCenterWhenRecording": true,
+            "showControlCenterWhenReplay": true,
+            "showControlCenterWhenReady": false
+        }
+    }
+}
