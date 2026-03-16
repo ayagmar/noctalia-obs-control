@@ -181,6 +181,7 @@ Item {
     path: root.actionEventPath
     printErrors: false
     watchChanges: true
+    onFileChanged: reload()
 
     onLoaded: {
       try {
