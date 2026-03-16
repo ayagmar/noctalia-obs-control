@@ -15,7 +15,6 @@ const STATUS_DISCONNECTED = {
   replayBuffer: false,
 };
 const WS_TIMEOUT_MS = 1500;
-const REMUX_TIMEOUT_MS = 90000;
 function usage() {
   console.error("usage: obsctl <launch|status|toggle-record|toggle-replay|save-replay>");
   process.exit(2);
@@ -44,49 +43,6 @@ function launchObs(args = []) {
     detached: true,
     stdio: "ignore",
   }).unref();
-}
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function waitForFile(filePath, timeoutMs = 90000) {
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
-    try {
-      const stat = fs.statSync(filePath);
-      if (stat.isFile() && stat.size > 0) return true;
-    } catch {}
-    await sleep(250);
-  }
-  return false;
-}
-
-async function cleanupRemuxedSource(recordingPath) {
-  if (!recordingPath) return false;
-
-  const parsed = path.parse(recordingPath);
-  const mkvPath = parsed.ext.toLowerCase() === ".mkv"
-    ? recordingPath
-    : path.join(parsed.dir, `${parsed.name}.mkv`);
-  const mp4Path = path.join(parsed.dir, `${parsed.name}.mp4`);
-
-  const remuxed = await waitForFile(mp4Path, REMUX_TIMEOUT_MS);
-  if (!remuxed) return false;
-
-  try {
-    const mkvStat = fs.statSync(mkvPath);
-    if (!mkvStat.isFile()) return false;
-  } catch {
-    return false;
-  }
-
-  try {
-    fs.unlinkSync(mkvPath);
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 function sha256b64(input) {
@@ -277,19 +233,12 @@ async function run() {
     } else if (cmd === "toggle-record") {
       const status = await ws.request("GetRecordStatus");
       const stopping = status.outputActive;
-      const recordingPath = status.outputPath || "";
       await ws.request(stopping ? "StopRecord" : "StartRecord");
-      let cleanedUp = false;
-      if (stopping) cleanedUp = await cleanupRemuxedSource(recordingPath);
       printResult({
         ok: true,
         event: stopping ? "record-stopped" : "record-started",
         title: stopping ? "OBS recording stopped" : "OBS recording started",
-        body: stopping
-          ? cleanedUp
-            ? "MP4 saved to Videos. Source MKV removed."
-            : "Recording saved to Videos."
-          : "Local recording is running.",
+        body: stopping ? "Recording saved to Videos." : "Local recording is running.",
         openVideos: stopping,
       });
     } else if (cmd === "toggle-replay") {
