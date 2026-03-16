@@ -17,7 +17,9 @@ Item {
                                    : ({})
   readonly property var pluginSettings: pluginApi ? (pluginApi.pluginSettings || {}) : ({})
   readonly property string obsctlPath: pluginApi ? (pluginApi.pluginDir + "/scripts/obsctl") : ""
+  readonly property string actionRunnerPath: pluginApi ? (pluginApi.pluginDir + "/scripts/run-action") : ""
   readonly property string openPathHelper: pluginApi ? (pluginApi.pluginDir + "/scripts/open-path") : ""
+  readonly property string actionEventPath: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/obs-control-action.json"
   readonly property string configuredVideosPath: pluginSettings.videosPath !== undefined
                                                  ? String(pluginSettings.videosPath).trim()
                                                  : String(defaults.videosPath !== undefined ? defaults.videosPath : "")
@@ -53,6 +55,7 @@ Item {
   property bool websocket: false
   property bool recording: false
   property bool replayBuffer: false
+  property string lastActionEventId: ""
   readonly property bool connected: obsRunning && websocket
   readonly property bool showInBar: (recording && showBarWhenRecording)
                                     || (replayBuffer && showBarWhenReplay)
@@ -171,6 +174,27 @@ Item {
     running: false
     repeat: false
     onTriggered: root.refresh()
+  }
+
+  FileView {
+    id: actionEventView
+    path: root.actionEventPath
+    printErrors: false
+    watchChanges: true
+
+    onLoaded: {
+      try {
+        const payload = JSON.parse(String(text() || "").trim() || "{}");
+        if (!payload || !payload.eventId || payload.eventId === root.lastActionEventId) {
+          return;
+        }
+        root.lastActionEventId = payload.eventId;
+        root.showActionToast(payload);
+        root.refresh();
+      } catch (e) {}
+    }
+
+    onLoadFailed: function() {}
   }
 
   Process {
