@@ -9,6 +9,19 @@ if [[ -z "$target" ]]; then
   exit 2
 fi
 
+if command -v gdbus >/dev/null 2>&1; then
+  target_uri="file://$target"
+  if gdbus call \
+    --session \
+    --dest org.freedesktop.FileManager1 \
+    --object-path /org/freedesktop/FileManager1 \
+    --method org.freedesktop.FileManager1.ShowFolders \
+    "['$target_uri']" \
+    "" >/dev/null 2>&1; then
+    exit 0
+  fi
+fi
+
 if command -v nautilus >/dev/null 2>&1; then
   exec nautilus --new-window "$target"
 fi
