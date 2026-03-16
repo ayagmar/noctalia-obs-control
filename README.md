@@ -22,13 +22,19 @@ OBS Studio controls for Noctalia with:
 - OBS WebSocket enabled in OBS
 - `node` available in `PATH`
 
-## Install
+## Installation
+1. Navigate to the Noctalia settings plugins section
 
-Clone or copy the plugin into your Noctalia plugins directory:
+2. Open the sources sub-menu
 
+3. Add Obs Control as a custom repository
 ```bash
-ln -s ~/Projects/Noctalia/plugins/obs-control ~/.config/noctalia/plugins/obs-control
+https://github.com/ayagmar/noctalia-obs-control.git
 ```
+
+4. Navigate back to Available plugins and search for Obs Control
+
+5. Click install button
 
 Enable it in Noctalia and add `plugin:obs-control` to your bar or Control Center layout.
 
