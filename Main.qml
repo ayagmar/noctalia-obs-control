@@ -53,6 +53,7 @@ Item {
   property bool websocket: false
   property bool recording: false
   property bool replayBuffer: false
+  property int recordDurationMs: 0
   readonly property bool connected: obsRunning && websocket
   readonly property bool showInBar: (recording && showBarWhenRecording)
                                     || (replayBuffer && showBarWhenReplay)
@@ -75,6 +76,7 @@ Item {
     websocket = Boolean(payload && payload.websocket);
     recording = Boolean(payload && payload.recording);
     replayBuffer = Boolean(payload && payload.replayBuffer);
+    recordDurationMs = Math.max(0, Number(payload && payload.recordDurationMs ? payload.recordDurationMs : 0));
   }
 
   function resetStatus() {
@@ -82,7 +84,8 @@ Item {
       "obsRunning": false,
       "websocket": false,
       "recording": false,
-      "replayBuffer": false
+      "replayBuffer": false,
+      "recordDurationMs": 0
     });
   }
 

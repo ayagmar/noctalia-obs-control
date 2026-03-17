@@ -23,6 +23,7 @@
   "panel.status.offline": "Offline",
   "panel.status.connected_hint": "The bar indicator follows recording state. Left click opens this panel, right click toggles recording, and middle click toggles replay.",
   "panel.status.disconnected_hint": "WebSocket control is unavailable right now. Launch or restart OBS to restore quick actions.",
+  "panel.status.elapsed": "Elapsed",
   "panel.actions.refresh_obs": "Refresh OBS",
   "panel.actions.launch_obs": "Launch OBS",
   "panel.actions.stop_recording": "Stop Recording",

@@ -15,6 +15,7 @@ Item {
   readonly property bool websocket: Boolean(service && service.websocket)
   readonly property bool recording: Boolean(service && service.recording)
   readonly property bool replayBuffer: Boolean(service && service.replayBuffer)
+  readonly property int recordDurationMs: Number(service && service.recordDurationMs ? service.recordDurationMs : 0)
   readonly property bool connected: obsRunning && websocket
 
   function tr(key, fallback, interpolations) {
@@ -22,6 +23,19 @@ Item {
       return pluginApi.tr(key, interpolations)
     }
     return fallback
+  }
+
+  function formatDuration(durationMs) {
+    const totalSeconds = Math.max(0, Math.floor(durationMs / 1000))
+    const hours = Math.floor(totalSeconds / 3600)
+    const minutes = Math.floor((totalSeconds % 3600) / 60)
+    const seconds = totalSeconds % 60
+
+    if (hours > 0) {
+      return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+    }
+
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
   }
 
   property bool allowAttach: true
@@ -124,6 +138,14 @@ Item {
             text: websocket
                   ? root.tr("panel.status.connected_hint", "The bar indicator follows recording state. Left click opens this panel, right click toggles recording, and middle click toggles replay.")
                   : root.tr("panel.status.disconnected_hint", "WebSocket control is unavailable right now. Launch or restart OBS to restore quick actions.")
+          }
+
+          NText {
+            Layout.fillWidth: true
+            visible: recording && recordDurationMs > 0
+            text: root.tr("panel.status.elapsed", "Elapsed") + ": " + root.formatDuration(recordDurationMs)
+            font.weight: Style.fontWeightMedium
+            color: Color.mOnSurface
           }
         }
       }

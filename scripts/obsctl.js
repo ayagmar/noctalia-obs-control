@@ -13,6 +13,7 @@ const STATUS_DISCONNECTED = {
   websocket: false,
   recording: false,
   replayBuffer: false,
+  recordDurationMs: 0,
 };
 const WS_TIMEOUT_MS = 1500;
 function usage() {
@@ -223,6 +224,7 @@ async function run() {
         websocket: true,
         recording: Boolean(recordStatus.outputActive),
         replayBuffer: Boolean(replayStatus.outputActive),
+        recordDurationMs: Number(recordStatus.outputDuration || 0),
       });
     } else if (cmd === "toggle-record") {
       const status = await ws.request("GetRecordStatus");
