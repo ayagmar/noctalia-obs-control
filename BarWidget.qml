@@ -37,6 +37,10 @@ Item {
   readonly property string statusTooltip: replayBuffer
                                             ? tr("bar.tooltip.replay", "OBS replay buffer is active\nLeft click {primaryAction}\nRight click toggles recording\nMiddle click stops the replay buffer", { primaryAction: primaryActionText })
                                             : tr("bar.tooltip.recording", "OBS recording is active\nLeft click {primaryAction}\nRight click stops recording\nMiddle click toggles the replay buffer", { primaryAction: primaryActionText })
+  readonly property color statusAccentColor: recording ? Color.mError : Color.mSecondary
+  readonly property string statusLabel: recording
+                                        ? root.tr("bar.recording_label", "REC")
+                                        : root.tr("bar.replay_label", "RPL")
 
   readonly property bool showInBar: Boolean(service && service.showInBar)
   readonly property real contentWidth: showInBar ? (content.implicitWidth + Style.marginM * 2) : 0
@@ -81,12 +85,12 @@ Item {
         width: Math.max(8, Math.round(root.barFontSize * 0.48))
         height: width
         radius: width / 2
-        color: Color.mError
+        color: root.statusAccentColor
       }
 
       NText {
         Layout.alignment: Qt.AlignVCenter
-        text: root.tr("bar.recording_label", "REC")
+        text: root.statusLabel
         pointSize: root.barFontSize
         font.weight: Style.fontWeightSemiBold
         color: Color.mOnSurface

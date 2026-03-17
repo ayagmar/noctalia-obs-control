@@ -2,6 +2,7 @@
   "actions.primary.open_controls": "opens controls",
   "actions.primary.toggle_record": "toggles recording",
   "bar.recording_label": "REC",
+  "bar.replay_label": "RPL",
   "bar.tooltip.recording": "OBS recording is active\nLeft click {primaryAction}\nRight click stops recording\nMiddle click toggles the replay buffer",
   "bar.tooltip.replay": "OBS replay buffer is active\nLeft click {primaryAction}\nRight click toggles recording\nMiddle click stops the replay buffer",
   "control_center.tooltip.recording": "OBS recording is active\nLeft click {primaryAction}\nRight click stops recording\nMiddle click toggles the replay buffer",
