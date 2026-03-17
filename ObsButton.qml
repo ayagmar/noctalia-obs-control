@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import qs.Commons
 import qs.Widgets
+import "I18n.js" as I18n
 
 NIconButtonHot {
   id: root
@@ -19,10 +20,7 @@ NIconButtonHot {
   readonly property string obsLogoSource: pluginApi ? ("file://" + pluginApi.pluginDir + "/assets/obs-logo.svg") : ""
 
   function tr(key, fallback, interpolations) {
-    if (pluginApi && pluginApi.hasTranslation && pluginApi.hasTranslation(key)) {
-      return pluginApi.tr(key, interpolations)
-    }
-    return fallback
+    return I18n.tr(pluginApi, key, fallback, interpolations)
   }
 
   icon: ""

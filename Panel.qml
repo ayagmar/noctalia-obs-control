@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Commons
 import qs.Widgets
+import "I18n.js" as I18n
 
 Item {
   id: root
@@ -15,14 +16,11 @@ Item {
   readonly property bool websocket: Boolean(service && service.websocket)
   readonly property bool recording: Boolean(service && service.recording)
   readonly property bool replayBuffer: Boolean(service && service.replayBuffer)
-  readonly property int recordDurationMs: Number(service && service.recordDurationMs ? service.recordDurationMs : 0)
+  readonly property int recordDurationMs: Number(service && service.displayRecordDurationMs ? service.displayRecordDurationMs : 0)
   readonly property bool connected: obsRunning && websocket
 
   function tr(key, fallback, interpolations) {
-    if (pluginApi && pluginApi.hasTranslation && pluginApi.hasTranslation(key)) {
-      return pluginApi.tr(key, interpolations)
-    }
-    return fallback
+    return I18n.tr(pluginApi, key, fallback, interpolations)
   }
 
   function formatDuration(durationMs) {

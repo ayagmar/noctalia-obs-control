@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import qs.Commons
 import qs.Widgets
+import "I18n.js" as I18n
 
 ColumnLayout {
   id: root
@@ -41,10 +42,7 @@ ColumnLayout {
                                                  : (defaults.showControlCenterWhenReady !== undefined ? defaults.showControlCenterWhenReady : false)
 
   function tr(key, fallback, interpolations) {
-    if (pluginApi && pluginApi.hasTranslation && pluginApi.hasTranslation(key)) {
-      return pluginApi.tr(key, interpolations)
-    }
-    return fallback
+    return I18n.tr(pluginApi, key, fallback, interpolations)
   }
 
   function saveSettings() {

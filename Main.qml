@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.Services.UI
+import "I18n.js" as I18n
 
 Item {
   id: root
@@ -54,6 +55,7 @@ Item {
   property bool recording: false
   property bool replayBuffer: false
   property int recordDurationMs: 0
+  property int displayRecordDurationMs: 0
   readonly property bool connected: obsRunning && websocket
   readonly property bool showInBar: (recording && showBarWhenRecording)
                                     || (replayBuffer && showBarWhenReplay)
@@ -65,10 +67,7 @@ Item {
                                                 : tr("actions.primary.open_controls", "opens controls")
 
   function tr(key, fallback, interpolations) {
-    if (pluginApi && pluginApi.hasTranslation && pluginApi.hasTranslation(key)) {
-      return pluginApi.tr(key, interpolations);
-    }
-    return fallback;
+    return I18n.tr(pluginApi, key, fallback, interpolations);
   }
 
   function applyStatus(payload) {
@@ -77,6 +76,8 @@ Item {
     recording = Boolean(payload && payload.recording);
     replayBuffer = Boolean(payload && payload.replayBuffer);
     recordDurationMs = Math.max(0, Number(payload && payload.recordDurationMs ? payload.recordDurationMs : 0));
+    displayRecordDurationMs = recording ? recordDurationMs : 0;
+    displayTimer.running = recording;
   }
 
   function resetStatus() {
@@ -260,6 +261,22 @@ Item {
     running: true
     repeat: true
     onTriggered: root.refresh()
+  }
+
+  Timer {
+    id: displayTimer
+    interval: 1000
+    running: false
+    repeat: true
+    onTriggered: {
+      if (!root.recording) {
+        root.displayRecordDurationMs = 0;
+        running = false;
+        return;
+      }
+
+      root.displayRecordDurationMs += 1000;
+    }
   }
 
   IpcHandler {

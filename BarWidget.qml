@@ -4,6 +4,7 @@ import Quickshell
 import qs.Commons
 import qs.Services.UI
 import qs.Widgets
+import "I18n.js" as I18n
 
 Item {
   id: root
@@ -28,10 +29,7 @@ Item {
   readonly property real barFontSize: Style.getBarFontSizeForScreen(screenName)
 
   function tr(key, fallback, interpolations) {
-    if (pluginApi && pluginApi.hasTranslation && pluginApi.hasTranslation(key)) {
-      return pluginApi.tr(key, interpolations)
-    }
-    return fallback
+    return I18n.tr(pluginApi, key, fallback, interpolations)
   }
 
   readonly property string statusTooltip: replayBuffer
