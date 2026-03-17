@@ -17,9 +17,7 @@ Item {
                                    : ({})
   readonly property var pluginSettings: pluginApi ? (pluginApi.pluginSettings || {}) : ({})
   readonly property string obsctlPath: pluginApi ? (pluginApi.pluginDir + "/scripts/obsctl") : ""
-  readonly property string actionRunnerPath: pluginApi ? (pluginApi.pluginDir + "/scripts/run-action") : ""
   readonly property string openPathHelper: pluginApi ? (pluginApi.pluginDir + "/scripts/open-path") : ""
-  readonly property string actionEventPath: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/obs-control-action.json"
   readonly property string configuredVideosPath: pluginSettings.videosPath !== undefined
                                                  ? String(pluginSettings.videosPath).trim()
                                                  : String(defaults.videosPath !== undefined ? defaults.videosPath : "")
@@ -55,14 +53,22 @@ Item {
   property bool websocket: false
   property bool recording: false
   property bool replayBuffer: false
-  property string lastActionEventId: ""
   readonly property bool connected: obsRunning && websocket
   readonly property bool showInBar: (recording && showBarWhenRecording)
                                     || (replayBuffer && showBarWhenReplay)
   readonly property bool showInControlCenter: (recording && showControlCenterWhenRecording)
                                               || (replayBuffer && showControlCenterWhenReplay)
                                               || (connected && showControlCenterWhenReady)
-  readonly property string primaryActionText: leftClickAction === "toggle-record" ? "toggles recording" : "opens controls"
+  readonly property string primaryActionText: leftClickAction === "toggle-record"
+                                                ? tr("actions.primary.toggle_record", "toggles recording")
+                                                : tr("actions.primary.open_controls", "opens controls")
+
+  function tr(key, fallback, interpolations) {
+    if (pluginApi && pluginApi.hasTranslation && pluginApi.hasTranslation(key)) {
+      return pluginApi.tr(key, interpolations);
+    }
+    return fallback;
+  }
 
   function applyStatus(payload) {
     obsRunning = Boolean(payload && payload.obsRunning);
@@ -116,19 +122,96 @@ Item {
   }
 
   function showActionToast(payload) {
-    if (!payload || !payload.title) {
+    if (!payload) {
       return;
     }
 
-    const actionLabel = payload.openVideos ? "Open Videos" : "";
+    const translated = translatedActionPayload(payload);
+    if (!translated.title) {
+      return;
+    }
+
+    const actionLabel = payload.openVideos ? tr("toast.actions.open_videos", "Open Videos") : "";
     const actionCallback = payload.openVideos ? function () { root.openVideos(); } : null;
-    ToastService.showNotice(payload.title, payload.body || "", "", 3200, actionLabel, actionCallback);
+    ToastService.showNotice(translated.title, translated.body, "", 3200, actionLabel, actionCallback);
+  }
+
+  function translatedActionPayload(payload) {
+    if (!payload) {
+      return { title: "", body: "" };
+    }
+
+    switch (payload.event) {
+    case "record-started":
+      return {
+        title: tr("toast.record_started.title", "OBS recording started"),
+        body: tr("toast.record_started.body", "Local recording is running."),
+      };
+    case "record-started-launch":
+      return {
+        title: tr("toast.record_started_launch.title", "OBS recording started"),
+        body: tr("toast.record_started_launch.body", "OBS launched in the tray."),
+      };
+    case "record-stopped":
+      return {
+        title: tr("toast.record_stopped.title", "OBS recording stopped"),
+        body: tr("toast.record_stopped.body", "Recording saved to Videos."),
+      };
+    case "replay-started":
+      return {
+        title: tr("toast.replay_started.title", "OBS replay buffer started"),
+        body: tr("toast.replay_started.body", "Replay buffer is active."),
+      };
+    case "replay-started-launch":
+      return {
+        title: tr("toast.replay_started_launch.title", "OBS replay buffer started"),
+        body: tr("toast.replay_started_launch.body", "OBS launched in the tray."),
+      };
+    case "replay-stopped":
+      return {
+        title: tr("toast.replay_stopped.title", "OBS replay buffer stopped"),
+        body: tr("toast.replay_stopped.body", "Instant replay is off."),
+      };
+    case "replay-saved":
+      return {
+        title: tr("toast.replay_saved.title", "OBS replay saved"),
+        body: tr("toast.replay_saved.body", "Saved the last replay buffer to Videos."),
+      };
+    case "offline":
+      return {
+        title: tr("toast.offline.title", "OBS is offline"),
+        body: tr("toast.offline.body", "Launch OBS to use recording controls."),
+      };
+    default:
+      return {
+        title: payload.title || "",
+        body: payload.body || "",
+      };
+    }
+  }
+
+  function showProcessErrorToast(detail) {
+    const body = detail && detail !== ""
+                 ? detail
+                 : tr("toast.error.body", "Check the OBS helper output.");
+    ToastService.showNotice(
+      tr("toast.error.title", "OBS control failed"),
+      body,
+      "",
+      4200
+    );
   }
 
   function openControls(screen, anchorItem) {
     if (pluginApi && screen) {
       pluginApi.togglePanel(screen, anchorItem);
     }
+  }
+
+  function togglePanelFromIpc() {
+    pluginApi?.withCurrentScreen(function(screen) {
+      root.openControls(screen, null);
+    });
   }
 
   function runPrimaryAction(screen, anchorItem) {
@@ -161,14 +244,6 @@ Item {
   property string pendingAction: ""
 
   Timer {
-    id: pollTimer
-    interval: root.pollIntervalMs
-    running: true
-    repeat: true
-    onTriggered: root.refresh()
-  }
-
-  Timer {
     id: actionRefreshTimer
     interval: 900
     running: false
@@ -176,26 +251,60 @@ Item {
     onTriggered: root.refresh()
   }
 
-  FileView {
-    id: actionEventView
-    path: root.actionEventPath
-    printErrors: false
-    watchChanges: true
-    onFileChanged: reload()
+  Timer {
+    id: pollTimer
+    interval: root.pollIntervalMs
+    running: true
+    repeat: true
+    onTriggered: root.refresh()
+  }
 
-    onLoaded: {
-      try {
-        const payload = JSON.parse(String(text() || "").trim() || "{}");
-        if (!payload || !payload.eventId || payload.eventId === root.lastActionEventId) {
-          return;
-        }
-        root.lastActionEventId = payload.eventId;
-        root.showActionToast(payload);
-        root.refresh();
-      } catch (e) {}
+  IpcHandler {
+    target: "plugin:obs-control"
+
+    function togglePanel() {
+      root.togglePanelFromIpc();
     }
 
-    onLoadFailed: function() {}
+    function refreshStatus() {
+      root.refresh();
+    }
+
+    function launchObs() {
+      root.launchObs();
+    }
+
+    function toggleRecord() {
+      root.toggleRecord();
+    }
+
+    function toggleReplay() {
+      root.toggleReplay();
+    }
+
+    function saveReplay() {
+      root.saveReplay();
+    }
+
+    function openVideos() {
+      root.openVideos();
+    }
+
+    function primaryAction() {
+      if (root.leftClickAction === "toggle-record") {
+        root.runSecondaryAction();
+        return;
+      }
+      root.togglePanelFromIpc();
+    }
+
+    function secondaryAction() {
+      root.runSecondaryAction();
+    }
+
+    function middleAction() {
+      root.runMiddleAction();
+    }
   }
 
   Process {
@@ -203,13 +312,18 @@ Item {
     running: false
     command: pendingAction === "" ? [] : [root.obsctlPath, pendingAction]
     stdout: StdioCollector {}
+    stderr: StdioCollector {}
 
     onExited: function(exitCode) {
       const output = String(stdout.text || "").trim();
+      const errorOutput = String(stderr.text || "").trim();
+
       if (exitCode === 0 && output !== "") {
         try {
           root.showActionToast(JSON.parse(output));
         } catch (e) {}
+      } else if (exitCode !== 0) {
+        root.showProcessErrorToast(errorOutput);
       }
 
       pendingAction = "";

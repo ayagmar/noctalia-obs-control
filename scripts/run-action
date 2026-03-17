@@ -2,12 +2,46 @@
 
 set -euo pipefail
 
-script_dir="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
-script_js="$script_dir/run-action.js"
-
-if ! command -v node >/dev/null 2>&1; then
-  echo "obs-control: node runtime not found in PATH" >&2
+if ! command -v qs >/dev/null 2>&1; then
+  echo "obs-control: qs runtime not found in PATH" >&2
   exit 1
 fi
 
-exec node "$script_js" "$@"
+case "${1:-}" in
+  launch)
+    command="launchObs"
+    ;;
+  toggle-record)
+    command="toggleRecord"
+    ;;
+  toggle-replay)
+    command="toggleReplay"
+    ;;
+  save-replay)
+    command="saveReplay"
+    ;;
+  refresh)
+    command="refreshStatus"
+    ;;
+  open-videos)
+    command="openVideos"
+    ;;
+  primary)
+    command="primaryAction"
+    ;;
+  secondary)
+    command="secondaryAction"
+    ;;
+  middle)
+    command="middleAction"
+    ;;
+  panel|toggle-panel)
+    command="togglePanel"
+    ;;
+  *)
+    echo "usage: run-action <launch|toggle-record|toggle-replay|save-replay|refresh|open-videos|primary|secondary|middle|panel>" >&2
+    exit 2
+    ;;
+esac
+
+exec qs -c noctalia-shell ipc call plugin:obs-control "$command"
