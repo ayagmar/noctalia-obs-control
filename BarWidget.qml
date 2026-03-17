@@ -27,9 +27,16 @@ Item {
   readonly property real capsuleHeight: Style.getCapsuleHeightForScreen(screenName)
   readonly property real barFontSize: Style.getBarFontSizeForScreen(screenName)
 
+  function tr(key, fallback, interpolations) {
+    if (pluginApi && pluginApi.hasTranslation && pluginApi.hasTranslation(key)) {
+      return pluginApi.tr(key, interpolations)
+    }
+    return fallback
+  }
+
   readonly property string statusTooltip: replayBuffer
-                                            ? "OBS replay buffer is active\nLeft click " + primaryActionText + "\nRight click toggles recording\nMiddle click stops the replay buffer"
-                                            : "OBS recording is active\nLeft click " + primaryActionText + "\nRight click stops recording\nMiddle click toggles the replay buffer"
+                                            ? tr("bar.tooltip.replay", "OBS replay buffer is active\nLeft click {primaryAction}\nRight click toggles recording\nMiddle click stops the replay buffer", { primaryAction: primaryActionText })
+                                            : tr("bar.tooltip.recording", "OBS recording is active\nLeft click {primaryAction}\nRight click stops recording\nMiddle click toggles the replay buffer", { primaryAction: primaryActionText })
 
   readonly property bool showInBar: Boolean(service && service.showInBar)
   readonly property real contentWidth: showInBar ? (content.implicitWidth + Style.marginM * 2) : 0
@@ -79,7 +86,7 @@ Item {
 
       NText {
         Layout.alignment: Qt.AlignVCenter
-        text: "REC"
+        text: root.tr("bar.recording_label", "REC")
         pointSize: root.barFontSize
         font.weight: Style.fontWeightSemiBold
         color: Color.mOnSurface

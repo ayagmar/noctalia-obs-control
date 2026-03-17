@@ -40,62 +40,63 @@ ColumnLayout {
                                                  ? pluginApi.pluginSettings.showControlCenterWhenReady
                                                  : (defaults.showControlCenterWhenReady !== undefined ? defaults.showControlCenterWhenReady : false)
 
+  function tr(key, fallback, interpolations) {
+    if (pluginApi && pluginApi.hasTranslation && pluginApi.hasTranslation(key)) {
+      return pluginApi.tr(key, interpolations)
+    }
+    return fallback
+  }
+
   function saveSettings() {
-    pluginApi.pluginSettings = {
-      "pollIntervalMs": valuePollIntervalMs,
-      "leftClickAction": valueLeftClickAction,
-      "videosPath": valueVideosPath.trim(),
-      "showBarWhenRecording": valueShowBarWhenRecording,
-      "showBarWhenReplay": valueShowBarWhenReplay,
-      "showControlCenterWhenRecording": valueShowControlCenterWhenRecording,
-      "showControlCenterWhenReplay": valueShowControlCenterWhenReplay,
-      "showControlCenterWhenReady": valueShowControlCenterWhenReady
-    };
+    if (!pluginApi) {
+      return;
+    }
+
+    pluginApi.pluginSettings.pollIntervalMs = valuePollIntervalMs;
+    pluginApi.pluginSettings.leftClickAction = valueLeftClickAction;
+    pluginApi.pluginSettings.videosPath = valueVideosPath.trim();
+    pluginApi.pluginSettings.showBarWhenRecording = valueShowBarWhenRecording;
+    pluginApi.pluginSettings.showBarWhenReplay = valueShowBarWhenReplay;
+    pluginApi.pluginSettings.showControlCenterWhenRecording = valueShowControlCenterWhenRecording;
+    pluginApi.pluginSettings.showControlCenterWhenReplay = valueShowControlCenterWhenReplay;
+    pluginApi.pluginSettings.showControlCenterWhenReady = valueShowControlCenterWhenReady;
     pluginApi.saveSettings();
-    return pluginApi.pluginSettings;
   }
 
   NHeader {
-    label: "OBS Control"
-    description: "Control how often the plugin polls OBS and when it becomes visible in the shell."
+    label: tr("settings.header.label", "OBS Control")
+    description: tr("settings.header.description", "Control how often the plugin polls OBS and when it becomes visible in the shell.")
   }
 
   NSpinBox {
-    label: "Poll Interval"
-    description: "How often the plugin refreshes OBS state, in milliseconds."
+    label: tr("settings.poll_interval.label", "Poll Interval")
+    description: tr("settings.poll_interval.description", "How often the plugin refreshes OBS state, in milliseconds.")
     from: 750
     to: 10000
     stepSize: 250
     value: valuePollIntervalMs
-    onValueChanged: {
-      valuePollIntervalMs = value;
-      saveSettings();
-    }
+    onValueChanged: valuePollIntervalMs = value
   }
 
   NComboBox {
-    label: "Left Click Action"
-    description: "Choose whether left click opens the panel or toggles recording directly."
+    label: tr("settings.left_click_action.label", "Left Click Action")
+    description: tr("settings.left_click_action.description", "Choose whether left click opens the panel or toggles recording directly.")
     model: [
-      { "key": "panel", "name": "Open Controls" },
-      { "key": "toggle-record", "name": "Toggle Recording" }
+      { "key": "panel", "name": tr("settings.left_click_action.options.open_controls", "Open Controls") },
+      { "key": "toggle-record", "name": tr("settings.left_click_action.options.toggle_recording", "Toggle Recording") }
     ]
     currentKey: valueLeftClickAction
     minimumWidth: 220
-    onSelected: key => {
-      valueLeftClickAction = key;
-      saveSettings();
-    }
+    onSelected: key => valueLeftClickAction = key
   }
 
   NTextInput {
     Layout.fillWidth: true
-    label: "Videos Path"
-    description: "Optional custom folder used by the panel and the toast action. Leave empty to use your default Videos directory."
+    label: tr("settings.videos_path.label", "Videos Path")
+    description: tr("settings.videos_path.description", "Optional custom folder used by the panel and the toast action. Leave empty to use your default Videos directory.")
     placeholderText: "~/Videos"
     text: valueVideosPath
     onTextChanged: valueVideosPath = text
-    onEditingFinished: saveSettings()
   }
 
   NDivider {
@@ -104,24 +105,18 @@ ColumnLayout {
 
   NToggle {
     Layout.fillWidth: true
-    label: "Show Bar While Recording"
-    description: "Display the bar indicator while OBS is actively recording."
+    label: tr("settings.show_bar_recording.label", "Show Bar While Recording")
+    description: tr("settings.show_bar_recording.description", "Display the bar indicator while OBS is actively recording.")
     checked: valueShowBarWhenRecording
-    onToggled: checked => {
-      valueShowBarWhenRecording = checked;
-      saveSettings();
-    }
+    onToggled: checked => valueShowBarWhenRecording = checked
   }
 
   NToggle {
     Layout.fillWidth: true
-    label: "Show Bar While Replay Is Active"
-    description: "Keep the bar indicator visible when only the replay buffer is running."
+    label: tr("settings.show_bar_replay.label", "Show Bar While Replay Is Active")
+    description: tr("settings.show_bar_replay.description", "Keep the bar indicator visible when only the replay buffer is running.")
     checked: valueShowBarWhenReplay
-    onToggled: checked => {
-      valueShowBarWhenReplay = checked;
-      saveSettings();
-    }
+    onToggled: checked => valueShowBarWhenReplay = checked
   }
 
   NDivider {
@@ -130,34 +125,25 @@ ColumnLayout {
 
   NToggle {
     Layout.fillWidth: true
-    label: "Show Control Center While Recording"
-    description: "Show the Control Center shortcut while OBS is recording."
+    label: tr("settings.show_control_center_recording.label", "Show Control Center While Recording")
+    description: tr("settings.show_control_center_recording.description", "Show the Control Center shortcut while OBS is recording.")
     checked: valueShowControlCenterWhenRecording
-    onToggled: checked => {
-      valueShowControlCenterWhenRecording = checked;
-      saveSettings();
-    }
+    onToggled: checked => valueShowControlCenterWhenRecording = checked
   }
 
   NToggle {
     Layout.fillWidth: true
-    label: "Show Control Center While Replay Is Active"
-    description: "Show the Control Center shortcut while the replay buffer is active."
+    label: tr("settings.show_control_center_replay.label", "Show Control Center While Replay Is Active")
+    description: tr("settings.show_control_center_replay.description", "Show the Control Center shortcut while the replay buffer is active.")
     checked: valueShowControlCenterWhenReplay
-    onToggled: checked => {
-      valueShowControlCenterWhenReplay = checked;
-      saveSettings();
-    }
+    onToggled: checked => valueShowControlCenterWhenReplay = checked
   }
 
   NToggle {
     Layout.fillWidth: true
-    label: "Show Control Center When OBS Is Ready"
-    description: "Keep the shortcut visible when OBS is connected but idle."
+    label: tr("settings.show_control_center_ready.label", "Show Control Center When OBS Is Ready")
+    description: tr("settings.show_control_center_ready.description", "Keep the shortcut visible when OBS is connected but idle.")
     checked: valueShowControlCenterWhenReady
-    onToggled: checked => {
-      valueShowControlCenterWhenReady = checked;
-      saveSettings();
-    }
+    onToggled: checked => valueShowControlCenterWhenReady = checked
   }
 }

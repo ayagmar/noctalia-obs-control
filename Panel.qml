@@ -17,6 +17,13 @@ Item {
   readonly property bool replayBuffer: Boolean(service && service.replayBuffer)
   readonly property bool connected: obsRunning && websocket
 
+  function tr(key, fallback, interpolations) {
+    if (pluginApi && pluginApi.hasTranslation && pluginApi.hasTranslation(key)) {
+      return pluginApi.tr(key, interpolations)
+    }
+    return fallback
+  }
+
   property bool allowAttach: true
   property real contentPreferredWidth: Math.round(372 * Style.uiScaleRatio)
   property real contentPreferredHeight: content.implicitHeight + (Style.margin2L * 2)
@@ -53,7 +60,7 @@ Item {
           spacing: Style.marginXXS
 
           NText {
-            text: "OBS Control"
+            text: root.tr("panel.header.title", "OBS Control")
             pointSize: Style.fontSizeXL
             font.weight: Style.fontWeightSemiBold
             color: Color.mPrimary
@@ -65,18 +72,18 @@ Item {
             color: Color.mOnSurfaceVariant
             text: {
               if (recording) {
-                return "Recording is active. Stop the capture or manage replay actions from here.";
+                return root.tr("panel.header.recording", "Recording is active. Stop the capture or manage replay actions from here.");
               }
               if (replayBuffer) {
-                return "Replay buffer is active. Save the latest replay at any time.";
+                return root.tr("panel.header.replay", "Replay buffer is active. Save the latest replay at any time.");
               }
               if (connected) {
-                return "OBS is connected and ready for recording or replay.";
+                return root.tr("panel.header.ready", "OBS is connected and ready for recording or replay.");
               }
               if (obsRunning) {
-                return "OBS is open, but WebSocket control is unavailable until it is restarted once.";
+                return root.tr("panel.header.needs_restart", "OBS is open, but WebSocket control is unavailable until it is restarted once.");
               }
-              return "OBS is offline. Launch it here and the widget will track its state.";
+              return root.tr("panel.header.offline", "OBS is offline. Launch it here and the widget will track its state.");
             }
           }
         }
@@ -96,7 +103,16 @@ Item {
 
           NText {
             Layout.fillWidth: true
-            text: "Status: " + (recording ? "Recording" : (replayBuffer ? "Replay Buffer" : (connected ? "Ready" : (obsRunning ? "Needs OBS Restart" : "Offline"))))
+            text: root.tr("panel.status.label", "Status") + ": " +
+                  (recording
+                    ? root.tr("panel.status.recording", "Recording")
+                    : (replayBuffer
+                        ? root.tr("panel.status.replay", "Replay Buffer")
+                        : (connected
+                            ? root.tr("panel.status.ready", "Ready")
+                            : (obsRunning
+                                ? root.tr("panel.status.needs_restart", "Needs OBS Restart")
+                                : root.tr("panel.status.offline", "Offline")))))
             font.weight: Style.fontWeightSemiBold
             color: recording ? Color.mError : (replayBuffer ? Color.mSecondary : Color.mOnSurface)
           }
@@ -106,8 +122,8 @@ Item {
             wrapMode: Text.WordWrap
             color: Color.mOnSurfaceVariant
             text: websocket
-                  ? "The bar indicator follows recording state. Left click opens this panel, right click toggles recording, and middle click toggles replay."
-                  : "WebSocket control is unavailable right now. Launch or restart OBS to restore quick actions."
+                  ? root.tr("panel.status.connected_hint", "The bar indicator follows recording state. Left click opens this panel, right click toggles recording, and middle click toggles replay.")
+                  : root.tr("panel.status.disconnected_hint", "WebSocket control is unavailable right now. Launch or restart OBS to restore quick actions.")
           }
         }
       }
@@ -121,7 +137,9 @@ Item {
         NButton {
           Layout.fillWidth: true
           icon: obsRunning ? "refresh" : "player-play"
-          text: obsRunning ? "Refresh OBS" : "Launch OBS"
+          text: obsRunning
+                ? root.tr("panel.actions.refresh_obs", "Refresh OBS")
+                : root.tr("panel.actions.launch_obs", "Launch OBS")
           enabled: !obsRunning || !websocket
           onClicked: {
             if (!service) {
@@ -138,7 +156,9 @@ Item {
         NButton {
           Layout.fillWidth: true
           icon: "player-record"
-          text: recording ? "Stop Recording" : "Start Recording"
+          text: recording
+                ? root.tr("panel.actions.stop_recording", "Stop Recording")
+                : root.tr("panel.actions.start_recording", "Start Recording")
           enabled: connected
           backgroundColor: recording ? Color.mError : Color.mPrimary
           textColor: recording ? Color.mOnError : Color.mOnPrimary
@@ -148,7 +168,9 @@ Item {
         NButton {
           Layout.fillWidth: true
           icon: "history"
-          text: replayBuffer ? "Stop Replay" : "Start Replay"
+          text: replayBuffer
+                ? root.tr("panel.actions.stop_replay", "Stop Replay")
+                : root.tr("panel.actions.start_replay", "Start Replay")
           enabled: connected
           backgroundColor: replayBuffer ? Color.mSecondary : Color.mSurfaceVariant
           textColor: replayBuffer ? Color.mOnSecondary : Color.mOnSurface
@@ -158,7 +180,7 @@ Item {
         NButton {
           Layout.fillWidth: true
           icon: "device-floppy"
-          text: "Save Replay"
+          text: root.tr("panel.actions.save_replay", "Save Replay")
           enabled: replayBuffer
           outlined: !replayBuffer
           onClicked: service && service.saveReplay()
@@ -167,7 +189,7 @@ Item {
         NButton {
           Layout.fillWidth: true
           icon: "folder"
-          text: "Open Videos"
+          text: root.tr("panel.actions.open_videos", "Open Videos")
           outlined: true
           onClicked: service && service.openVideos()
         }
@@ -176,7 +198,7 @@ Item {
       NButton {
         Layout.fillWidth: true
         icon: "refresh"
-        text: "Refresh Status"
+        text: root.tr("panel.actions.refresh_status", "Refresh Status")
         outlined: true
         onClicked: service && service.refresh()
       }

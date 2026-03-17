@@ -193,24 +193,18 @@ async function run() {
         launchObs(["--startrecording", "--minimize-to-tray"]);
         printResult({
           ok: true,
-          event: "record-started",
-          title: "OBS recording started",
-          body: "OBS launched in the tray.",
+          event: "record-started-launch",
         });
       } else if (cmd === "toggle-replay") {
         launchObs(["--startreplaybuffer", "--minimize-to-tray"]);
         printResult({
           ok: true,
-          event: "replay-started",
-          title: "OBS replay buffer started",
-          body: "OBS launched in the tray.",
+          event: "replay-started-launch",
         });
       } else {
         printResult({
           ok: false,
           event: "offline",
-          title: "OBS is offline",
-          body: "Launch OBS to use recording controls.",
         });
       }
       return;
@@ -237,8 +231,6 @@ async function run() {
       printResult({
         ok: true,
         event: stopping ? "record-stopped" : "record-started",
-        title: stopping ? "OBS recording stopped" : "OBS recording started",
-        body: stopping ? "Recording saved to Videos." : "Local recording is running.",
         openVideos: stopping,
       });
     } else if (cmd === "toggle-replay") {
@@ -248,16 +240,12 @@ async function run() {
       printResult({
         ok: true,
         event: stopping ? "replay-stopped" : "replay-started",
-        title: stopping ? "OBS replay buffer stopped" : "OBS replay buffer started",
-        body: stopping ? "Instant replay is off." : "Replay buffer is active.",
       });
     } else if (cmd === "save-replay") {
       await ws.request("SaveReplayBuffer");
       printResult({
         ok: true,
         event: "replay-saved",
-        title: "OBS replay saved",
-        body: "Saved the last replay buffer to Videos.",
         openVideos: true,
       });
     }

@@ -18,6 +18,13 @@ NIconButtonHot {
   readonly property string primaryActionText: service ? service.primaryActionText : "opens controls"
   readonly property string obsLogoSource: pluginApi ? ("file://" + pluginApi.pluginDir + "/assets/obs-logo.svg") : ""
 
+  function tr(key, fallback, interpolations) {
+    if (pluginApi && pluginApi.hasTranslation && pluginApi.hasTranslation(key)) {
+      return pluginApi.tr(key, interpolations)
+    }
+    return fallback
+  }
+
   icon: ""
   hot: recording || replayBuffer
   colorBgHot: recording ? Color.mError : Color.mSecondary
@@ -25,18 +32,18 @@ NIconButtonHot {
 
   tooltipText: {
     if (recording) {
-      return "OBS recording is active\nLeft click " + primaryActionText + "\nRight click stops recording\nMiddle click toggles the replay buffer";
+      return tr("control_center.tooltip.recording", "OBS recording is active\nLeft click {primaryAction}\nRight click stops recording\nMiddle click toggles the replay buffer", { primaryAction: primaryActionText });
     }
     if (replayBuffer) {
-      return "OBS replay buffer is active\nLeft click " + primaryActionText + "\nRight click starts recording\nMiddle click stops the replay buffer";
+      return tr("control_center.tooltip.replay", "OBS replay buffer is active\nLeft click {primaryAction}\nRight click starts recording\nMiddle click stops the replay buffer", { primaryAction: primaryActionText });
     }
     if (connected) {
-      return "OBS is ready\nLeft click " + primaryActionText + "\nRight click starts recording\nMiddle click toggles the replay buffer";
+      return tr("control_center.tooltip.ready", "OBS is ready\nLeft click {primaryAction}\nRight click starts recording\nMiddle click toggles the replay buffer", { primaryAction: primaryActionText });
     }
     if (obsRunning) {
-      return "OBS is running, but WebSocket control is unavailable\nRestart OBS once to restore controls";
+      return tr("control_center.tooltip.needs_restart", "OBS is running, but WebSocket control is unavailable\nRestart OBS once to restore controls");
     }
-    return "OBS is offline\nLeft click " + primaryActionText + "\nRight click launches OBS";
+    return tr("control_center.tooltip.offline", "OBS is offline\nLeft click {primaryAction}\nRight click launches OBS", { primaryAction: primaryActionText });
   }
 
   NIcon {
