@@ -1,3 +1,5 @@
+MOVED TO https://github.com/noctalia-dev/noctalia-plugins/tree/main/obs-control
+
 # OBS Control for Noctalia
 
 OBS Studio controls for Noctalia with:
